@@ -1,27 +1,21 @@
-from typing import Optional
-
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
-class Event(BaseModel):
-    id: str
-    idfull: str
-    pref: str
-    cat_id: str
-    cat_url: str
-    loc_id: str
+class EventSchema(BaseModel):
+    id: int
+    category_id: int
+    location_id: int
     name: str
     date_start: str
     date_end: str
     logo: str
-    logo_p: str
-    anons: str
-    is_free: str
-    min_price: str
-    max_price: str
-    age: str
-    vip: str
+    small_logo: str
+    event_description: str
+    min_price: int
+    max_price: int
+    age_restriction: str
     places: list
+    model_config = ConfigDict(from_attributes=True)
 
 
 class EventsResponse(BaseModel):

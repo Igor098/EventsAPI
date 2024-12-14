@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import APIRouter
 import aiohttp
 
-import settings
+from config import settings
 
 
 events_router = APIRouter()
