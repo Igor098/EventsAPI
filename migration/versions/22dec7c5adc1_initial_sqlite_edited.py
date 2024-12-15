@@ -1,8 +1,8 @@
-"""Initial revision
+"""Initial sqlite edited
 
-Revision ID: 8f293b970956
+Revision ID: 22dec7c5adc1
 Revises: 
-Create Date: 2024-12-15 01:20:48.783131
+Create Date: 2024-12-16 00:19:13.263231
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '8f293b970956'
+revision: str = '22dec7c5adc1'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -41,8 +41,13 @@ def upgrade() -> None:
     sa.Column('date_start', sa.String(), nullable=False),
     sa.Column('date_end', sa.String(), nullable=False),
     sa.Column('logo', sa.String(), nullable=False),
+    sa.Column('logo_width', sa.Integer(), nullable=False),
+    sa.Column('logo_height', sa.Integer(), nullable=False),
     sa.Column('small_logo', sa.String(), nullable=False),
+    sa.Column('small_logo_width', sa.Integer(), nullable=False),
+    sa.Column('small_logo_height', sa.Integer(), nullable=False),
     sa.Column('event_description', sa.String(), nullable=False),
+    sa.Column('is_free', sa.Boolean(), nullable=False),
     sa.Column('min_price', sa.Integer(), nullable=False),
     sa.Column('max_price', sa.Integer(), nullable=False),
     sa.Column('age_restriction', sa.String(), nullable=False),

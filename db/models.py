@@ -18,6 +18,7 @@ class Event(Base):
     small_logo_width: Mapped[int]
     small_logo_height: Mapped[int]
     event_description: Mapped[str]
+    is_free: Mapped[bool]
     min_price: Mapped[int]
     max_price: Mapped[int]
     age_restriction: Mapped[str]

@@ -1,5 +1,3 @@
-import io
-
 import aiohttp
 import aiofiles
 import requests
@@ -37,8 +35,8 @@ app.include_router(main_api_router)
 async def root():
     async with aiohttp.ClientSession() as session:
         async with session.get("https://afisha7.ru/uploads/gallery/films/rb_15105.webp") as response:
-            image_bytes = await response.read()
-            im = Image.open(io.BytesIO(image_bytes))
+            f = await response.read()
+            im = Image.open(f)
 
             width, height = im.size
             return {"width": width,

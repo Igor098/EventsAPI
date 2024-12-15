@@ -18,8 +18,12 @@ class Settings(BaseSettings):
         return (f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}@"
                 f"{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}")
 
+    def get_sqlite_url(self):
+        return f"sqlite+aiosqlite:///data/db.sqlite"
+
 
 settings = Settings()
 
 print("DB URL =>", settings.get_db_url())
 print("DB HOST =>", settings.DB_HOST)
+print("DB SQLITE =>", settings.get_sqlite_url())

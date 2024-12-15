@@ -21,7 +21,12 @@ class EventSchema(BaseModel):
     min_price: Optional[int]
     max_price: Optional[int]
     age_restriction: str
-    places: list
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PlaceSchema(BaseModel):
+    place_name: str
+    place_address: str
     model_config = ConfigDict(from_attributes=True)
 
 
