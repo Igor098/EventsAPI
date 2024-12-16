@@ -17,10 +17,10 @@ class Event(Base):
     small_logo: Mapped[str]
     small_logo_width: Mapped[int]
     small_logo_height: Mapped[int]
-    event_description: Mapped[str]
+    event_description: Mapped[str] = mapped_column(nullable=True)
     is_free: Mapped[bool]
-    min_price: Mapped[int]
-    max_price: Mapped[int]
+    min_price: Mapped[int] = mapped_column(nullable=True)
+    max_price: Mapped[int] = mapped_column(nullable=True)
     age_restriction: Mapped[str]
 
 
@@ -41,5 +41,5 @@ class EventsPlaces(Base):
     event_id: Mapped[int_pk] = mapped_column(ForeignKey("events.event_id"), nullable=False)
     place_id: Mapped[int_pk] = mapped_column(ForeignKey("places.place_id"), nullable=False)
 
-    event: Mapped["Event"] = relationship('Events', backref='places')
-    place: Mapped["Place"] = relationship('Places', backref='events')
+    event: Mapped["Event"] = relationship('Event', backref='places')
+    place: Mapped["Place"] = relationship('Place', backref='events')

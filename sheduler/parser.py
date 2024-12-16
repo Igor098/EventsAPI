@@ -1,6 +1,7 @@
 import asyncio
 import datetime
 import io
+import json
 import random
 from pprint import pprint
 
@@ -138,7 +139,7 @@ async def _parse_events_data(url: str, loc_id: int):
         events.extend(results)
 
     print(f"Добавлено {len(events)} событий")
-    return {"events": events}
+    return events
 
 
 async def _parse_categories_data(url: str):
@@ -150,14 +151,14 @@ async def _parse_categories_data(url: str):
         categories.append(CategorySchema(**{
             "category_id": int(category.get("id")),
             "category_name": category.get("name"),
-        }
-                                         ))
+        }))
 
     print(f"Добавлено {len(categories)} категорий")
-    return {"categories": categories}
+    return categories
 
 
 async def parse_data():
     categories = await _parse_categories_data("https://api.afisha7.ru/v1.0/categories/")
     events = await _parse_events_data("https://api.afisha7.ru/v1.0/events/", loc_id=1310)
-    return categories, events
+    data = {"categories": categories, "events": events}
+    return data

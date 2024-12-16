@@ -1,8 +1,8 @@
 """Initial sqlite edited
 
-Revision ID: 22dec7c5adc1
+Revision ID: e881a2018d0d
 Revises: 
-Create Date: 2024-12-16 00:19:13.263231
+Create Date: 2024-12-16 19:04:32.569554
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '22dec7c5adc1'
+revision: str = 'e881a2018d0d'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -46,10 +46,10 @@ def upgrade() -> None:
     sa.Column('small_logo', sa.String(), nullable=False),
     sa.Column('small_logo_width', sa.Integer(), nullable=False),
     sa.Column('small_logo_height', sa.Integer(), nullable=False),
-    sa.Column('event_description', sa.String(), nullable=False),
+    sa.Column('event_description', sa.String(), nullable=True),
     sa.Column('is_free', sa.Boolean(), nullable=False),
-    sa.Column('min_price', sa.Integer(), nullable=False),
-    sa.Column('max_price', sa.Integer(), nullable=False),
+    sa.Column('min_price', sa.Integer(), nullable=True),
+    sa.Column('max_price', sa.Integer(), nullable=True),
     sa.Column('age_restriction', sa.String(), nullable=False),
     sa.ForeignKeyConstraint(['category_id'], ['categories.category_id'], ),
     sa.PrimaryKeyConstraint('event_id')

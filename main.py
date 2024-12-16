@@ -1,13 +1,9 @@
 import io
-
 import aiohttp
-import aiofiles
-import requests
 import uvicorn
 from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
-from io import BytesIO
 
 
 from api.handlers import events_router

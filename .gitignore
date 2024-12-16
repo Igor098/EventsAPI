@@ -2,3 +2,5 @@ venv
 .env
 data
 test_main.http
+__pycache__
+~*
