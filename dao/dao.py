@@ -54,6 +54,11 @@ class EventsDAO(BaseDAO):
         await session.commit()
 
     @classmethod
+    async def delete_event_places(cls, session: AsyncSession):
+        await session.execute(delete(EventsPlaces))
+        await session.commit()
+
+    @classmethod
     async def add_or_update_events(cls, session: AsyncSession, events: List[BaseModel]):
         for event in events:
             event_dict = event.model_dump(exclude_unset=True)
@@ -91,13 +96,7 @@ class EventsDAO(BaseDAO):
                     new_place = Place(place_name=place['name'], place_address=place['address'])
                     session.add(new_place)
                 else:
-                    existing_ep = await session.execute(
-                        select(EventsPlaces).where(
-                            EventsPlaces.event_id == place['name']
-                        )
-                    )
                     new_mapping = EventsPlaces(event_id=event.event_id, place_id=existing_place.place_id)
-
                     session.add(new_mapping)
         await session.commit()
 
