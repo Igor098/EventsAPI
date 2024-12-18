@@ -19,7 +19,7 @@ class Settings(BaseSettings):
                 f"{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}")
 
     def get_sqlite_url(self):
-        return f"sqlite+aiosqlite:///../data/db.sqlite"
+        return f"sqlite+aiosqlite:///data/db.sqlite"
 
 
 settings = Settings()

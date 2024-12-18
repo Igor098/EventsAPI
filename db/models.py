@@ -1,3 +1,5 @@
+from typing import List
+
 from sqlalchemy import Sequence, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -22,12 +24,14 @@ class Event(Base):
     min_price: Mapped[int] = mapped_column(nullable=True)
     max_price: Mapped[int] = mapped_column(nullable=True)
     age_restriction: Mapped[str]
+    places = relationship("Place", secondary="events_places", back_populates="events")
 
 
 class Place(Base):
     place_id: Mapped[int_pk] = mapped_column(Sequence("place_id_seq"))
     place_name: Mapped[str_uniq]
     place_address: Mapped[str]
+    events = relationship("Event", secondary="events_places", back_populates="places")
 
 
 class Category(Base):
@@ -37,9 +41,6 @@ class Category(Base):
 
 
 class EventsPlaces(Base):
-    __tablename__ = 'events-places'
+    __tablename__ = 'events_places'
     event_id: Mapped[int_pk] = mapped_column(ForeignKey("events.event_id"), nullable=False)
     place_id: Mapped[int_pk] = mapped_column(ForeignKey("places.place_id"), nullable=False)
-
-    event: Mapped["Event"] = relationship('Event', backref='places')
-    place: Mapped["Place"] = relationship('Place', backref='events')

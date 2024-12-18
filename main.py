@@ -1,19 +1,51 @@
-import io
-import aiohttp
 import uvicorn
 from fastapi import FastAPI, APIRouter
-from fastapi.middleware.cors import CORSMiddleware
-from PIL import Image
 
+from contextlib import asynccontextmanager
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.interval import IntervalTrigger
+from starlette.middleware.cors import CORSMiddleware
 
+from sheduler.sheduler import update_events_from_db
 from api.handlers import events_router
+from loguru import logger
+
+scheduler = AsyncIOScheduler()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Управляет жизненным циклом планировщика приложения.
+
+    Args:
+        app (FastAPI): Экземпляр приложения FastAPI.
+    """
+    try:
+        # Настройка и запуск планировщика
+        scheduler.add_job(
+            update_events_from_db,
+            trigger=IntervalTrigger(minutes=60),
+            id='events_update_job',
+            replace_existing=True
+        )
+        scheduler.start()
+        logger.info("Планировщик обновления событий в Нижнем Новгороде запущен")
+        yield
+    except Exception as e:
+        logger.error(f"Ошибка инициализации планировщика: {e}")
+    finally:
+        # Завершение работы планировщика
+        scheduler.shutdown()
+        logger.info("Планировщик обновления событий в Нижнем Новгороде остановлен")
+
 
 origins = [
     "http://localhost",
     "http://localhost:3000",
 ]
 
-app = FastAPI(title="Events API")
+app = FastAPI(title="Events API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -31,14 +63,7 @@ app.include_router(main_api_router)
 
 @app.get("/")
 async def root():
-    async with aiohttp.ClientSession() as session:
-        async with session.get("https://afisha7.ru/uploads/gallery/films/rb_15105.webp") as response:
-            image_bytes = await response.read()
-            im = Image.open(io.BytesIO(image_bytes))
-
-            width, height = im.size
-            return {"width": width,
-                    "height": height}
+    return {"Hello": "World"}
 
 
 @app.get("/hello/{name}")

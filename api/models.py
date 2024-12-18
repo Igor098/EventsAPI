@@ -1,6 +1,11 @@
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel, ConfigDict
+
+
+class PlaceSchema(BaseModel):
+    name: str
+    address: str
 
 
 class EventSchema(BaseModel):
@@ -21,7 +26,7 @@ class EventSchema(BaseModel):
     min_price: Optional[int]
     max_price: Optional[int]
     age_restriction: str
-    places: list
+    places: List[PlaceSchema]
     model_config = ConfigDict(from_attributes=True)
 
 

@@ -1,9 +1,7 @@
 import asyncio
 import datetime
 import io
-import json
 import random
-from pprint import pprint
 
 import aiohttp
 from PIL import Image
