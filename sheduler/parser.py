@@ -2,20 +2,33 @@ import asyncio
 import datetime
 import io
 import random
-
 import aiohttp
 from PIL import Image
-
 from api.models import EventSchema, CategorySchema
 from config import settings
+from loguru import logger
 
 
 async def _get_total_events(url: str, loc_id: int):
+    """
+    Функция для получения общего количества мероприятий в городе через API
+    :param url: адрес API с мероприятиями
+    :param loc_id: ID города, для которого запрашиваются мероприятия
+    :return: возвращает общее количество событий
+    """
     response = await _get_events(url, loc_id, limit=1, offset=0)
     return int(response.get("total"))
 
 
 async def _get_events(url: str, loc_id: int, limit: int, offset: int):
+    """
+    Функция для получения всех мероприятий из определенного города через API
+    :param url: адрес API с мероприятиями
+    :param loc_id: ID города, для которого запрашиваются мероприятия
+    :param limit: запрашиваемое количество мероприятий. Не более 100
+    :param offset: номер мероприятия, с которого начинается отсчет количества
+    :return: возвращает все мероприятия в определенном городе
+    """
     async with aiohttp.ClientSession() as session:
         async with session.post(url, data={'APIKey': settings.AFISHA_KEY, "loc_id": loc_id,
                                            "limit": limit, "offset": offset}) as response:
@@ -23,27 +36,46 @@ async def _get_events(url: str, loc_id: int, limit: int, offset: int):
 
 
 async def _get_categories(url: str):
+    """
+    Функция для получения всех категорий мероприятий в API
+    :param url: адрес API с мероприятиями
+    :return: возвращает все категории мероприятий
+    """
     async with aiohttp.ClientSession() as session:
         async with session.post(url, data={'APIKey': settings.AFISHA_KEY}) as response:
             return await response.json()
 
 
 async def _fetch_events(url, loc_id, limit, offset):
+    """
+    Функция для выполнения параллельных запросов к API
+    :param url: адрес API с мероприятиями
+    :param loc_id: ID города, для которого запрашиваются мероприятия
+    :param limit: запрашиваемое количество мероприятий. Не более 100
+    :param offset: номер мероприятия, с которого начинается отсчет количества
+    :return: возвращает события из запроса
+    """
     events_response = await _get_events(url, loc_id, limit=limit, offset=offset)
     return events_response.get("events")
 
 
 async def _get_all_events(url: str, loc_id: int):
+    """
+    Запускает выполнение параллельных запросов к API и объединяет их в один список
+    :param url: адрес API с мероприятиями
+    :param loc_id: ID города, для которого запрашиваются мероприятия
+    :return: возвращает список всех событий в заданном городе
+    """
     total = await _get_total_events(url, loc_id)
     offset = 0
     events = []
     count = 1
 
     while total > 0:
-        print(f'Запускаю извлечение данных. Запрос No {count}. Количество записей осталось {total}')
+        logger.info(f'Запускаю извлечение данных. Запрос No {count}. Количество записей осталось {total}')
         limit = 100 if total > 100 else total
-        print(f'Количество записей за раз: {limit}')
-        print(f'Смещение: {offset}')
+        logger.info(f'Количество записей за раз: {limit}')
+        logger.info(f'Смещение: {offset}')
 
         if total < limit:
             num_tasks = 1
@@ -56,7 +88,7 @@ async def _get_all_events(url: str, loc_id: int):
             tasks.append(task)
             offset += limit
 
-        print(f'Количество задач: {len(tasks)}')
+        logger.info(f'Количество задач: {len(tasks)}')
 
         results = await asyncio.gather(*tasks)
         events.extend([event for result in results for event in result])
@@ -66,16 +98,27 @@ async def _get_all_events(url: str, loc_id: int):
 
         await asyncio.sleep(random.randint(2, 5))
 
-    print(f"Добавлено {len(events)} событий")
+    logger.info(f"Добавлено {len(events)} событий")
     return events
 
 
 async def _get_str_date(date: str):
+    """
+    Переводит дату из числового представления в человеческий вид
+    :param date: дата в числовом виде
+    :return: возвращает дату в виде строки
+    """
     correct_date = datetime.datetime.fromtimestamp(int(date)).strftime('%Y-%m-%d')
     return correct_date
 
 
-async def _get_image_size(url: str, retries=3):
+async def _get_image_size(url: str, retries=2):
+    """
+    Извлекает размеры картинки
+    :param url: адрес API с мероприятиями
+    :param retries: количество попыток
+    :return: возвращает кортеж с размером картинки
+    """
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as response:
@@ -86,7 +129,7 @@ async def _get_image_size(url: str, retries=3):
                 return width, height
 
     except Exception as e:
-        print("Произошла ошибка", e)
+        logger.info(f"Картинка недоступна: {e}")
         if retries > 0:
             return await _get_image_size(url, retries - 1)
         else:
@@ -94,6 +137,11 @@ async def _get_image_size(url: str, retries=3):
 
 
 async def _create_event(event: dict) -> EventSchema:
+    """
+    Переводит данные из стороннего API в формат для записи в БД
+    :param event: мероприятие из внешнего API
+    :return: возвращает событие в формате EventSchema для записи в БД
+    """
     print("Обрабатываю событие", event.get("name"))
     logo = event.get("logo")
     logo_width, logo_height = await _get_image_size(logo)

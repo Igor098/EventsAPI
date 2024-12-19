@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlalchemy import delete, and_, select, asc, desc
 from datetime import datetime
-from api.models import EventSchema, PlaceSchema
+from api.models import EventSchema, PlaceSchema, CategorySchema
 from dao.base import BaseDAO
 from db.models import Event, Place, Category, EventsPlaces
 from loguru import logger
@@ -177,3 +177,75 @@ class EventsDAO(BaseDAO):
             events_data.append(EventSchema(**event_data))
 
         return events_data
+
+    @classmethod
+    async def get_events_by_category(
+            cls,
+            session: AsyncSession,
+            category: str,  # Имя категории для фильтрации
+            limit: int = 20,
+            offset: int = 0,
+            sort_by: Optional[str] = "date_start",  # Параметр сортировки (по умолчанию — дата)
+            order: Optional[str] = "asc",  # Порядок сортировки (по умолчанию — возрастание)
+    ) -> List[EventSchema]:
+        # Определяем поле сортировки
+        sort_column = {
+            "date_start": Event.date_start,
+            "name": Event.name,
+        }.get(sort_by, Event.date_start)  # По умолчанию сортируем по дате начала
+
+        # Определяем порядок сортировки
+        order_method = asc if order == "asc" else desc
+
+        # Запрос для получения событий с учетом имени категории
+        result = await session.execute(
+            select(Event)
+            .options(selectinload(Event.places))  # Загрузить связанные места
+            .join(Category, Category.category_id == Event.category_id)  # Джойн с таблицей категорий
+            .filter(Category.category_name == category)  # Фильтр по имени категории
+            .filter(Event.places.any())  # Исключить события без мест
+            .order_by(order_method(sort_column))  # Применить сортировку
+            .offset(offset)  # Применить смещение
+            .limit(limit)  # Применить ограничение
+        )
+        events = result.scalars().all()
+
+        events_data = []
+
+        for event in events:
+            # Формируем словарь данных для EventSchema
+            event_data = {
+                "event_id": event.event_id,
+                "category_id": event.category_id,
+                "location_id": event.location_id,
+                "name": event.name,
+                "date_start": event.date_start,
+                "date_end": event.date_end,
+                "logo": event.logo,
+                "logo_width": event.logo_width,
+                "logo_height": event.logo_height,
+                "small_logo": event.small_logo,
+                "small_logo_width": event.small_logo_width,
+                "small_logo_height": event.small_logo_height,
+                "event_description": event.event_description,
+                "is_free": event.is_free,
+                "min_price": event.min_price,
+                "max_price": event.max_price,
+                "age_restriction": event.age_restriction,
+                "places": [PlaceSchema(name=place.place_name, address=place.place_address) for place in event.places],
+            }
+            # Создаём объект EventSchema, передавая словарь через распаковку
+            events_data.append(EventSchema(**event_data))
+
+        return events_data
+
+    @classmethod
+    async def get_categories(cls, session: AsyncSession) -> List[CategorySchema]:
+        # Запрос для получения списка категорий
+        result = await session.execute(
+            select(Category)
+        )
+        categories = result.scalars().all()
+
+        # Конвертация категорий в Pydantic-модель
+        return [CategorySchema.from_orm(category) for category in categories]
