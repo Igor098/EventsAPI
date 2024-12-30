@@ -8,7 +8,6 @@ from loguru import logger
 
 events_router = APIRouter()
 
-
 async def _get_events_from_params(
         session: AsyncSession,
         limit: Optional[int] = None,
@@ -64,6 +63,21 @@ async def _get_events_by_category(
 
 async def _get_categories(session):
     return await EventsDAO.get_categories(session)
+
+
+async def _get_event_by_id(
+        session: AsyncSession,
+        event_id: int,
+):
+    """
+    Данная функция отвечает за доступ к данным в базе данных
+    :param session: Сессия для доступа к БД
+    :param event_id: ID события для запроса
+    """
+    return await EventsDAO.get_events_by_id(
+        session,
+        event_id,
+    )
 
 
 @events_router.get("/", response_model=List[EventSchema])
@@ -134,6 +148,27 @@ async def get_categories(
             raise HTTPException(status_code=404, detail="Категории не найдены.")\
 
         return categories
+
+    except Exception as e:
+        logger.error(f"Ошибка сервера: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Ошибка сервера: {str(e)}")
+
+
+@events_router.get("/", response_model=List[CategorySchema])
+async def get_event_by_id(
+    event_id: int,
+    session: AsyncSession = Depends(session_manager.get_transaction_session),
+):
+    """
+        Получение одного события по ID
+    """
+    try:
+        event = await _get_event_by_id(session, event_id)
+        if not event:
+            logger.error("Событие не найдено")
+            raise HTTPException(status_code=404, detail="Категории не найдены.")\
+
+        return event
 
     except Exception as e:
         logger.error(f"Ошибка сервера: {str(e)}")

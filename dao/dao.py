@@ -248,4 +248,37 @@ class EventsDAO(BaseDAO):
         categories = result.scalars().all()
 
         # Конвертация категорий в Pydantic-модель
-        return [CategorySchema.from_orm(category) for category in categories]
+        return [CategorySchema.model_validate(category) for category in categories]
+
+    @classmethod
+    async def get_events_by_id(cls, session: AsyncSession, event_id: int) -> EventSchema:
+        result = await session.execute(
+            select(Event)
+            .options(selectinload(Event.places))  # Загрузить связанные места
+            .where(Event.event_id == event_id)
+        )
+
+        event = result.one()
+
+        event_data = {
+            "event_id": event.event_id,
+            "category_id": event.category_id,
+            "location_id": event.location_id,
+            "name": event.name,
+            "date_start": event.date_start,
+            "date_end": event.date_end,
+            "logo": event.logo,
+            "logo_width": event.logo_width,
+            "logo_height": event.logo_height,
+            "small_logo": event.small_logo,
+            "small_logo_width": event.small_logo_width,
+            "small_logo_height": event.small_logo_height,
+            "event_description": event.event_description,
+            "is_free": event.is_free,
+            "min_price": event.min_price,
+            "max_price": event.max_price,
+            "age_restriction": event.age_restriction,
+            "places": [PlaceSchema(name=place.place_name, address=place.place_address) for place in event.places],
+        }
+
+        return EventSchema(**event_data)
