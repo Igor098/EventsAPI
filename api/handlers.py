@@ -9,10 +9,6 @@ from loguru import logger
 events_router = APIRouter()
 
 
-async def _get_categories(session: AsyncSession = Depends(session_manager)) -> List[CategorySchema]:
-    pass
-
-
 async def _get_events_from_params(
         session: AsyncSession,
         limit: Optional[int] = None,

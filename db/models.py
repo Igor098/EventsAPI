@@ -1,13 +1,14 @@
+import uuid
 from typing import List
 
-from sqlalchemy import Sequence, ForeignKey
+from sqlalchemy import BIGINT, ForeignKey, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.database import Base, str_uniq, int_pk
 
 
 class Event(Base):
-    event_id: Mapped[int_pk]
+    event_id: Mapped[int_pk] = mapped_column(BIGINT)
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.category_id"), nullable=False)
     location_id: Mapped[int]
     name: Mapped[str]
@@ -28,7 +29,7 @@ class Event(Base):
 
 
 class Place(Base):
-    place_id: Mapped[int_pk] = mapped_column(Sequence("place_id_seq"))
+    place_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     place_name: Mapped[str_uniq]
     place_address: Mapped[str]
     events = relationship("Event", secondary="events_places", back_populates="places")
@@ -42,5 +43,5 @@ class Category(Base):
 
 class EventsPlaces(Base):
     __tablename__ = 'events_places'
-    event_id: Mapped[int_pk] = mapped_column(ForeignKey("events.event_id"), nullable=False)
+    event_id: Mapped[int_pk] = mapped_column(BIGINT, ForeignKey("events.event_id"), nullable=False)
     place_id: Mapped[int_pk] = mapped_column(ForeignKey("places.place_id"), nullable=False)

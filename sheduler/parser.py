@@ -163,7 +163,7 @@ async def _create_event(event: dict) -> EventSchema:
         "small_logo": small_logo,
         "small_logo_width": small_logo_width,
         "small_logo_height": small_logo_height,
-        "event_description": event.get("description"),
+        "event_description": event.get("anons"),
         "is_free": True if event.get("is_free") != "0" else False,
         "min_price": event.get("min_price"),
         "max_price": event.get("max_price"),

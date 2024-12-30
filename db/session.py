@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine, Asyn
 from config import settings
 
 
-DATABASE_URL = settings.get_sqlite_url()
+DATABASE_URL = settings.get_db_url()
 
 engine = create_async_engine(url=DATABASE_URL)
 
